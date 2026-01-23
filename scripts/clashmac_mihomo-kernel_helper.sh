@@ -31,7 +31,7 @@ CLASHMAC_DIR="/Applications/ClashMac.app"
 CLASHMAC_CORE_DIR="$HOME/Library/Application Support/clashmac/core"
 ACTIVE_CORE="mihomo"   # 默认核心文件名
 
-GITHUB_USERS=("vernesong" "MetaCubeX")  # 可选 GitHub 用户
+GITHUB_USERS=("MetaCubeX" "vernesong")  # 可选 GitHub 用户
 DEFAULT_BRANCH="Prerelease-Alpha"       # 默认分支
 
 # 颜色定义
@@ -218,10 +218,15 @@ install_core() {
         GITHUB_USER="MetaCubeX"
         echo -e "${BLUE}[信息] 已指定版本:${NC} $VERSION_BRANCH"
     else
-        VERSION_BRANCH="$DEFAULT_BRANCH"
-        echo -e "${BLUE}[步骤] 选择 GitHub 用户下载核心${NC}"
+        echo -e "${BLUE}[步骤] 选择 GitHub 用户下载核心: ${NC}\n"
         for i in "${!GITHUB_USERS[@]}"; do
-            echo "  $((i+1))) ${GITHUB_USERS[$i]}"
+            if [ "${GITHUB_USERS[$i]}" = "vernesong" ]; then
+                echo "  $((i+1))) ${GITHUB_USERS[$i]} - Smart版本\n"
+            elif [ "${GITHUB_USERS[$i]}" = "MetaCubeX" ]; then
+                echo "  $((i+1))) ${GITHUB_USERS[$i]} - 官方原版\n"
+            else
+                echo "  $((i+1))) ${GITHUB_USERS[$i]}"
+            fi
         done
         read -p "请选择用户（默认1）: " CHOICE
         if [[ "$CHOICE" =~ ^[0-9]+$ ]] && [ "$CHOICE" -ge 1 ] && [ "$CHOICE" -le "${#GITHUB_USERS[@]}" ]; then
@@ -230,10 +235,38 @@ install_core() {
             GITHUB_USER="${GITHUB_USERS[0]}"
         fi
         echo "[信息] 选择 GitHub 用户: $GITHUB_USER"
+
+        # 如果是 MetaCubeX 并且没有指定版本，询问要使用稳定版本还是测试版本
+        if [ "$GITHUB_USER" = "MetaCubeX" ] && [ -z "$VERSION_BRANCH" ]; then
+            echo
+            echo -e "${BLUE}[步骤] 选择 MetaCubeX 版本类型: ${NC}"
+            echo "  1) 测试版本 (Prerelease-Alpha) - 默认"
+            echo "  2) 稳定版本 (Tags)"
+            read -p "请选择版本类型（默认1）: " VERSION_TYPE_CHOICE
+            echo
+
+            if [[ "$VERSION_TYPE_CHOICE" == "2" ]]; then
+                echo -e "${YELLOW}[提示] 请访问 https://github.com/MetaCubeX/mihomo/tags 查看可用的稳定版本${NC}"
+                read -p "请输入要安装的稳定版本号 (例如: v1.19.19): " STABLE_VERSION
+                if [ -n "$STABLE_VERSION" ]; then
+                    VERSION_BRANCH="$STABLE_VERSION"
+                    echo -e "${BLUE}[信息] 已选择稳定版本:${NC} $STABLE_VERSION"
+                else
+                    echo -e "${YELLOW}[警告] 未输入版本号，使用默认测试版本${NC}"
+                    VERSION_BRANCH="$DEFAULT_BRANCH"
+                fi
+            else
+                VERSION_BRANCH="$DEFAULT_BRANCH"
+                echo -e "${BLUE}[信息] 使用测试版本:${NC} $VERSION_BRANCH"
+            fi
+        else
+            VERSION_BRANCH="$DEFAULT_BRANCH"
+        fi
     fi
 
     # ---------- 2. 获取版本信息 ----------
     VERSION_URL="https://github.com/${GITHUB_USER}/mihomo/releases/download/$VERSION_BRANCH/version.txt"
+    echo "[信息] 版本分支: $VERSION_BRANCH, GITHUB_USER: $GITHUB_USER, VERSION_URL: $VERSION_URL"
     BASE_DOWNLOAD_URL="https://github.com/${GITHUB_USER}/mihomo/releases/download/$VERSION_BRANCH"
     echo "[步骤] 获取最新版本信息..."
     VERSION_INFO=$(curl -fsL "$VERSION_URL")
