@@ -42,42 +42,10 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # ========================
-# 检查核心目录是否存在
-# ========================
-require_core_dir() {
-    echo -e "${BLUE}[步骤] 检查 ClashMac 核心目录...${NC}"
-    if [ ! -d "$CLASHMAC_CORE_DIR" ]; then
-        echo -e "${RED}[错误] 未找到 ClashMac Core 目录:${NC}"
-        echo "  $CLASHMAC_CORE_DIR"
-        exit 1
-    fi
-    cd "$CLASHMAC_CORE_DIR" || { echo -e "${RED}[错误] 进入核心目录失败${NC}"; exit 1; }
-    echo -e "${GREEN}[成功] 当前目录: $CLASHMAC_CORE_DIR${NC}"
-}
-
-# ========================
-# 帮助信息
-# ========================
-cmd_help() {
-    echo -e "${BLUE}[步骤] 显示帮助信息${NC}"
-    echo
-    echo -e "${BLUE}clashmac_mihomo-kernel_helper.sh${NC}"
-    echo
-    echo "用法:"
-    echo "  sh $0 install           安装 / 更新 mihomo 核心（默认）"
-    echo "  sh $0 status            显示当前核心及最新备份"
-    echo "  sh $0 list              列出所有备份核心"
-    echo "  sh $0 switch [suffix]   切换到备份核心"
-    echo "  sh $0 help              显示帮助信息"
-    echo
-}
-
-# ========================
 # 列出备份核心
 # ========================
 list_backups() {
-    require_core_dir
-    echo -e "${BLUE}[步骤] 列出可用备份核心${NC}\n"
+    echo -e "列出可用备份核心${NC}\n"
 
     BACKUP_FILES=$(ls -1 mihomo.backup.* 2>/dev/null)
     if [ -z "$BACKUP_FILES" ]; then
@@ -105,8 +73,7 @@ list_backups() {
 # 当前核心状态
 # ========================
 show_status() {
-    require_core_dir
-    echo -e "${BLUE}[步骤] 获取当前核心状态${NC}"
+    echo -e "${BLUE}获取当前核心状态${NC}"
 
     if [ -f "$ACTIVE_CORE" ]; then
         if [ -x "$ACTIVE_CORE" ]; then
@@ -126,7 +93,7 @@ show_status() {
         echo "当前核心文件不存在"
     fi
 
-    echo -e "${BLUE}[步骤] 获取最新备份信息${NC}"
+    echo -e "${BLUE}获取最新备份信息${NC}"
     LATEST=$(ls -1t mihomo.backup.* 2>/dev/null | head -n1)
     if [ -n "$LATEST" ]; then
         if [[ "$LATEST" =~ ^(mihomo\.backup\.(mihomo-darwin-(amd64|arm64)-.+))\.([0-9]{8}_[0-9]{6})$ ]]; then
@@ -146,15 +113,13 @@ show_status() {
 # 切换核心
 # ========================
 switch_core() {
-    require_core_dir
-
     if [ -z "$1" ]; then
         echo -e "${RED}[错误] switch 必须指定版本${NC}"
         exit 1
     fi
 
     INPUT="$1"
-    echo -e "${BLUE}[步骤] 开始切换核心... 输入参数: $INPUT${NC}"
+    echo -e "${BLUE}开始切换核心... 输入参数: $INPUT${NC}"
 
     # 显示当前核心信息
     if [ -f "$ACTIVE_CORE" ]; then
@@ -166,10 +131,10 @@ switch_core() {
 
     # 匹配备份文件
     if [[ "$INPUT" =~ ^[0-9]{8}_[0-9]{6}$ ]]; then
-        echo "[步骤] 按时间戳查找备份..."
+        echo "按时间戳查找备份..."
         TARGET_BACKUP=$(ls -1 "$CLASHMAC_CORE_DIR"/mihomo.backup.* 2>/dev/null | grep "\.$INPUT$")
     elif [[ "$INPUT" =~ ^mihomo-darwin-(amd64|arm64)-.+$ ]]; then
-        echo "[步骤] 按版本号查找备份..."
+        echo "按版本号查找备份..."
         TARGET_BACKUP=$(ls -1 "$CLASHMAC_CORE_DIR"/mihomo.backup.* 2>/dev/null | grep "$INPUT")
     else
         echo -e "${RED}[错误] 只支持版本号或时间戳格式${NC}"
@@ -187,7 +152,7 @@ switch_core() {
     if [ -f "$ACTIVE_CORE" ]; then
         TMP_ROLLBACK="${ACTIVE_CORE}.rollback.$(date +%Y%m%d_%H%M%S)"
         cp "$ACTIVE_CORE" "$TMP_ROLLBACK"
-        echo "[步骤] 已备份当前核心 -> $TMP_ROLLBACK"
+        echo "已备份当前核心 -> $TMP_ROLLBACK"
     fi
 
     # 替换核心
@@ -201,7 +166,7 @@ switch_core() {
 
     # 删除临时回滚
     rm -f "$TMP_ROLLBACK"
-    echo "[步骤] 已删除临时回滚: $TMP_ROLLBACK"
+    echo "已删除临时回滚: $TMP_ROLLBACK"
 
     echo -e "${YELLOW}请在 GUI 中重启内核以生效${NC}"
 }
@@ -210,7 +175,6 @@ switch_core() {
 # 安装 / 更新核心
 # ========================
 install_core() {
-    require_core_dir
     VERSION_BRANCH="$1"
 
     # ---------- 1. 选择 GitHub 用户 ----------
@@ -218,7 +182,7 @@ install_core() {
         GITHUB_USER="MetaCubeX"
         echo -e "${BLUE}[信息] 已指定版本:${NC} $VERSION_BRANCH"
     else
-        echo -e "${BLUE}[步骤] 选择 GitHub 用户下载核心: ${NC}"
+        echo -e "${BLUE}选择 GitHub 用户下载核心: ${NC}"
         for i in "${!GITHUB_USERS[@]}"; do
             if [ "${GITHUB_USERS[$i]}" = "vernesong" ]; then
                 echo "  $((i+1))) ${GITHUB_USERS[$i]} - Smart版本"
@@ -239,7 +203,7 @@ install_core() {
         # 如果是 MetaCubeX 并且没有指定版本，询问要使用稳定版本还是测试版本
         if [ "$GITHUB_USER" = "MetaCubeX" ] && [ -z "$VERSION_BRANCH" ]; then
             echo
-            echo -e "${BLUE}[步骤] 选择 MetaCubeX 版本类型: ${NC}"
+            echo -e "${BLUE}选择 MetaCubeX 版本类型: ${NC}"
             echo "  1) 测试版本 (Prerelease-Alpha) - 默认"
             echo "  2) 稳定版本 (Tags)"
             read -p "请选择版本类型（默认1）: " VERSION_TYPE_CHOICE
@@ -268,7 +232,7 @@ install_core() {
     VERSION_URL="https://github.com/${GITHUB_USER}/mihomo/releases/download/$VERSION_BRANCH/version.txt"
     echo "[信息] 版本分支: $VERSION_BRANCH, GITHUB_USER: $GITHUB_USER, VERSION_URL: $VERSION_URL"
     BASE_DOWNLOAD_URL="https://github.com/${GITHUB_USER}/mihomo/releases/download/$VERSION_BRANCH"
-    echo "[步骤] 获取最新版本信息..."
+    echo "获取最新版本信息..."
     VERSION_INFO=$(curl -fsL "$VERSION_URL")
     if [ -z "$VERSION_INFO" ] || echo "$VERSION_INFO" | grep -iq "Not Found"; then
         echo -e "${RED}[错误] 无法获取版本信息或版本不存在${NC}"
@@ -302,7 +266,7 @@ install_core() {
     echo "[信息] 下载链接: $DOWNLOAD_URL"
 
     # ---------- 5. 下载并写入核心 ----------
-    echo "[步骤] 下载并解压核心到 $ACTIVE_CORE ..."
+    echo "下载并解压核心到 $ACTIVE_CORE ..."
     for i in {1..3}; do
         curl -fL "$DOWNLOAD_URL" | gunzip > "$ACTIVE_CORE" && break
         echo "下载失败，重试第 $i 次..."
@@ -317,7 +281,7 @@ install_core() {
     BACKUP_FILE="$CLASHMAC_CORE_DIR/mihomo.backup.${VERSION}.${TIMESTAMP}"
     cp -f "$ACTIVE_CORE" "$BACKUP_FILE"
     chmod +x "$BACKUP_FILE"
-    echo "[步骤] 生成备份文件 -> $(basename "$BACKUP_FILE")"
+    echo "生成备份文件 -> $(basename "$BACKUP_FILE")"
 
     echo -e "${GREEN}[完成] 安装完成: $VERSION${NC}"
 }
@@ -326,21 +290,21 @@ install_core() {
 # 打印脚本版本 / 帮助 / 未知命令
 # ========================
 show_version() {
-    echo -e "${BLUE}[步骤] 检查脚本版本... ${NC}"
+    echo -e "${BLUE}检查脚本版本... ${NC}"
     echo -e "${GREEN}[结果] 当前脚本版本: $SCRIPT_VERSION"
 }
 
 shwo_help() {
-    echo -e "${BLUE}[步骤] 显示帮助信息${NC}"
-    echo "clashmac_mihomo-kernel_helper - ClashMac mihomo 核心助手脚本"
+    echo -e "${BLUE}显示帮助信息${NC}\n"
+    echo "clashmac_mihomo-kernel_helper - ClashMac mihomo 核心助手脚本${NC}\n"
     echo "用法: $0 <命令>"
     echo
-    echo "命令:"
-    echo "  install       安装最新 mihomo 核心"
-    echo "  switch        切换备份核心"
-    echo "  status        显示当前核心状态"
-    echo "  version       显示脚本版本"
-    echo "  help          显示帮助信息"
+    echo "  sh $0 install           安装 / 更新 mihomo 核心（默认）"
+    echo "  sh $0 status            显示当前核心及最新备份"
+    echo "  sh $0 list              列出所有备份核心"
+    echo "  sh $0 switch [suffix]   切换到备份核心"
+    echo "  sh $0 doctor            显示健康状态"
+    echo "  sh $0 help              显示帮助信息"
 }
 
 handle_unknown_command() {
@@ -349,28 +313,99 @@ handle_unknown_command() {
 }
 
 # ========================
-# 检查 ClashMac 应用是否安装
+# 检查 ClashMac + mihomo 内核状态
 # ========================
-check_clashmac_app() {
-    echo ""
-    echo -e "${BLUE}[步骤] 检查 ClashMac 应用是否安装...${NC}"
+health_check_core() {
+    echo -e "${GREEN}========== 健康检查开始 ==========${NC}"
+    # 0. ClashMac App 检查
+    echo -e "${BLUE}========== ClashMac 安装检查 ==========${NC}"
     if [ ! -d "$CLASHMAC_DIR" ]; then
         echo -e "${RED}[错误] 未找到 ClashMac 应用目录:${NC}"
         echo "  $CLASHMAC_DIR"
         echo -e "${YELLOW}[提示] 请先安装 ClashMac 应用后再运行此脚本${NC}"
-        exit 1
+        return 1
     fi
     echo -e "${GREEN}[成功] ClashMac 应用已安装: $CLASHMAC_DIR${NC}"
+
+    # 1. Core 目录检查
+    echo -e "${BLUE}========== ClashMac 核心目录检查 ==========${NC}"
+
+    if [ ! -d "$CLASHMAC_CORE_DIR" ]; then
+        echo -e "${RED}[错误] 未找到 ClashMac Core 目录:${NC}"
+        echo "  $CLASHMAC_CORE_DIR"
+        exit 1
+    fi
+    cd "$CLASHMAC_CORE_DIR" || { echo -e "${RED}[错误] 进入核心目录失败${NC}"; exit 1; }
+    echo -e "${GREEN}[成功] 当前目录: $CLASHMAC_CORE_DIR${NC}"
+
+    echo -e "${BLUE}========== ClashMac 内核健康检查 ==========${NC}"
+
+    # 2. 核心文件是否存在
+    if [ ! -f "$ACTIVE_CORE" ]; then
+        echo -e "${RED}[×] 未找到 mihomo 核心文件${NC}"
+        echo "    预期路径: $CLASHMAC_CORE_DIR/$ACTIVE_CORE"
+        return 1
+    fi
+    echo -e "${GREEN}[✓] 核心文件存在${NC}"
+
+    # 3. 是否可执行
+    if [ ! -x "$ACTIVE_CORE" ]; then
+        echo -e "${RED}[×] mihomo 不可执行${NC}"
+        echo "    建议执行: chmod +x $CLASHMAC_CORE_DIR/$ACTIVE_CORE"
+        return 1
+    fi
+    echo -e "${GREEN}[✓] 可执行权限正常${NC}"
+
+    # 4. 架构检查（macOS 专用）
+    ARCH_RAW="$(uname -m)"
+    FILE_INFO="$(file "$ACTIVE_CORE")"
+
+    if [[ "$ARCH_RAW" == "arm64" && "$FILE_INFO" != *"arm64"* ]]; then
+        echo -e "${RED}[×] 架构不匹配${NC}"
+        echo "    系统架构: arm64"
+        echo "    核心信息: $FILE_INFO"
+        return 1
+    fi
+
+    if [[ "$ARCH_RAW" == "x86_64" && "$FILE_INFO" != *"x86_64"* && "$FILE_INFO" != *"amd64"* ]]; then
+        echo -e "${RED}[×] 架构不匹配${NC}"
+        echo "    系统架构: x86_64"
+        echo "    核心信息: $FILE_INFO"
+        return 1
+    fi
+
+    echo -e "${GREEN}[✓] 架构匹配 ($ARCH_RAW)${NC}"
+
+    # 5. 版本信息可读性（不启动服务）
+    VERSION_INFO=$("./$ACTIVE_CORE" -v 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}[×] 无法读取版本信息${NC}"
+        echo "    该核心可能已损坏"
+        return 1
+    fi
+
+    echo -e "${GREEN}[✓] 版本信息可读取 ${NC}"
+
+    # 6. Core 目录写权限（ClashMac 切换/更新必需）
+    if [ ! -w "$CLASHMAC_CORE_DIR" ]; then
+        echo -e "${RED}[×] core 目录无写权限${NC}"
+        echo "    ClashMac 可能无法更新或切换内核"
+        return 1
+    fi
+    echo -e "${GREEN}[✓] core 目录写权限正常${NC}"
+
+    echo -e "${GREEN}========== 健康检查通过 ==========${NC}"
+
+    echo ""
 }
 
 # ========================
 # 主入口
 # ========================
-check_clashmac_app
-
+health_check_core
 COMMAND="$1"
 case "$COMMAND" in
-    help|-h) shwo_help ;;
+    help|--help) shwo_help ;;
     version|-v) show_version ;;
     install|-i) shift; install_core "$@" ;;
     list|-ls) list_backups ;;
