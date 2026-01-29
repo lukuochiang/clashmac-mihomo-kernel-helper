@@ -1,16 +1,11 @@
 <div align="center">
   <img src="assets/logo.png" alt="ClashFox Logo" width="200">
 </div>
-# 📦 ClashMac 专用 mihomo 内核版本管理工具
 
-ClashMac mihomo Kernel Helper 是一个专注于 **mihomo 内核下载、管理、切换** 的命令行助手，避免重复下载、支持按时间戳管理备份，与 GUI 完全分离职责。
+# 📦 [ClashMac Mihomo Kernel Helper](https://github.com/lukuochiang/clashmac-mihomo-kernel-helper)
 
----
-
-## 🔗 关联项目
-
-- [ClashMac 项目地址](https://github.com/666OS/ClashMac)  
-- 本仓库仅管理 **mihomo 内核**，不依赖 GUI，也不启动或控制内核运行状态
+ 是一个专注于 **mihomo 内核下载、管理、切换** 的命令行助手，避免重复下载、支持按时间戳管理备份，与 GUI 完全分离职责。<br/>
+ 本仓库仅管理 **mihomo 内核**，不依赖 GUI，也不启动或控制内核运行状态，仅适用 [**_ClashMac_**](https://github.com/666OS/ClashMac)
 
 ---
 
@@ -31,8 +26,19 @@ ClashMac mihomo Kernel Helper 是一个专注于 **mihomo 内核下载、管理�
 
 ---
 
+## 📁 脚本区别与选择
+
+本项目提供三个功能不同的脚本，满足不同使用场景：
+
+| 脚本名称                                   | 功能特点 | 适用场景 |
+|----------------------------------------|---------|---------|
+| **clashmac_mihomo-kernel_helper.sh**   | 基础命令行工具，功能全面 | 脚本集成、自动化任务 |
+| **clashmac_mihomo-kernel_installer.sh** | 最小化安装脚本，仅含安装功能 | 一键安装场景、快速部署 |
+| **clashmac_mihomo-kernel_manager.sh**  | 交互式菜单界面，功能最丰富 | 手动操作、新手友好 |
+
 ## 📌 功能总览
 
+### 基础功能（所有脚本）
 | 命令                  | 功能                        |
 | ------------------- | -------------------------- |
 | `status`            | 显示当前核心 & 最新备份版本 |
@@ -41,11 +47,19 @@ ClashMac mihomo Kernel Helper 是一个专注于 **mihomo 内核下载、管理�
 | `switch <version>`  | 切换到指定备份版本          |
 | `help`              | 显示帮助说明               |
 
+### 交互式界面专属功能
+| 功能                  | 描述                        |
+| ------------------- | -------------------------- |
+| **健康检查**         | 检查内核运行状态和系统环境   |
+| **杀掉内核进程**     | 强制终止 mihomo 内核进程    |
+| **重启 ClashMac**    | 重新启动 ClashMac 应用程序  |
+| **交互式菜单**       | 直观的图形化操作界面        
 ---
+
 
 ## 🚀 快速开始
 
-⚡️一键安装
+### 1. 一键安装（推荐）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lukuochiang/clashmac-mihomo-kernel-helper/refs/heads/main/scripts/clashmac_mihomo-kernel_helper.sh \
@@ -62,89 +76,106 @@ curl -fsSL https://raw.githubusercontent.com/lukuochiang/clashmac-mihomo-kernel-
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/lukuochiang/clashmac-mihomo-kernel-helper/refs/heads/main/scripts/clashmac_mihomo-kernel_tui.sh \
+curl -fsSL https://raw.githubusercontent.com/lukuochiang/clashmac-mihomo-kernel-helper/refs/heads/main/scripts/clashmac_mihomo-kernel_manager.sh \
   -o /tmp/mihomo.sh \
 && chmod +x /tmp/mihomo.sh \
 && /tmp/mihomo.sh install
 ```
 
 
-1. 克隆仓库  
-
+### 2. 手动安装
 ```bash
+# 克隆仓库
 git clone https://github.com/lukuochiang/clashmac-mihomo-kernel-helper.git
-cd clashmac-mihomo-kihomo-kernel-helper
-```
+cd clashmac-mihomo-kernel-helper
 
-2. 给脚本执行权限  
+# 给脚本执行权限
+chmod +x scripts/*.sh
+
+# 运行 TUI 界面（推荐）
+./scripts/clashmac_mihomo-kernel_tui.sh
+
+# 或运行基础命令行工具
+./scripts/clashmac_mihomo-kernel_helper.sh status
+```
+---
+
+## 🎯 使用指南
+
+### 基础命令行工具使用
 
 ```bash
-chmod +x clashmac_mihomo_kernel_helper.sh
-```
+# 查看当前状态
+./scripts/clashmac_mihomo-kernel_helper.sh status
 
-3. 基本命令示例  
+# 列出所有备份
+./scripts/clashmac_mihomo-kernel_helper.sh list
 
-- 查看当前状态  
-
-```bash
-sh clashmac_mihomo_kernel_helper.sh status
-```
-
-输出示例：
-
-```
-当前使用核心:
-  mihomo -> darwin-amd64-v1.19.9
-
-最新备份:
-  mihomo.backup.mihomo-darwin-amd64-v1.19.9.20260122_005337 -> darwin-amd64-v1.19.9 -> 20260122_005337
-
-提示:
-  sh clashmac_mihomo_kernel_helper.sh switch darwin-amd64-v1.19.9
-```
-
-- 列出所有备份  
-
-```bash
-sh clashmac_mihomo_kernel_helper.sh list
-```
-
-输出示例：
-
-```
-1) mihomo.backup.mihomo-darwin-amd64-alpha-xxxxxx.20260122_113554 -> darwin-amd64-alpha-xxxxxx -> 20260122_113554
-2) mihomo.backup.mihomo-darwin-amd64-v1.19.9.20260122_005337 -> darwin-amd64-v1.19.9 -> 20260122_005337
-```
-
-- 安装最新或指定版本  
-
-```bash
-# 安装默认最新
-sh clashmac_mihomo_kernel_helper.sh install
+# 安装最新版本
+./scripts/clashmac_mihomo-kernel_helper.sh install
 
 # 安装指定版本
-sh clashmac_mihomo_kernel_helper.sh install v1.19.9
+./scripts/clashmac_mihomo-kernel_helper.sh install v1.19.9
+
+# 切换到指定版本
+./scripts/clashmac_mihomo-kernel_helper.sh switch darwin-amd64-v1.19.9
 ```
 
-- 切换到某个备份版本  
+### 交互式界面使用
 
-```bash
-sh clashmac_mihomo_kernel_helper.sh switch darwin-amd64-v1.19.9
-```
+1. 启动 交互式 界面：
+   ```bash
+   ./scripts/clashmac_mihomo-kernel_manager.sh
+   ```
 
-> 切换后请前往 GUI（如 ClashMac）执行 **重启内核** 使其生效
+2. 使用菜单导航：
+  - 使用数字键选择功能
+  - 按 Enter 确认选择
+  - 按照提示完成操作
+
+3. 核心功能流程：
+  - **安装/更新**：选择 GitHub 源 → 选择版本分支 → 自动下载安装
+  - **切换版本**：查看可用版本 → 选择版本 → 自动切换
+  - **健康检查**：自动诊断内核和系统状态 → 显示结果
 
 ---
 
-## 🧩 版本解析规则
+## 🛠️ 高级特性
 
-- 当前内核通过 `./mihomo -v` 获取版本  
-- 备份文件按名称中的 **时间戳** 排序  
-- 格式统一：  
+### 多源支持
 
-```
-mihomo.backup.mihomo-darwin-<arch>-<version>.<timestamp>
-```
+脚本支持从多个 GitHub 源下载 mihomo 内核：
+- **MetaCubeX**：官方原版内核
+- **vernesong**：Smart 版本内核
+
+### 自动架构检测
+
+自动检测系统架构（arm64/amd64），下载匹配的内核版本。
+
+### 智能备份管理
+
+- 按时间戳命名备份文件：`mihomo.backup.<version>.<timestamp>`
+- 保留完整历史备份，方便追溯和回滚
+- 避免重复下载相同版本
+
+### 日志管理
+
+TUI 界面提供日志查看功能：
+- 查看最新日志条目
+- 实时监控日志更新
+- 清理旧日志文件
+
+---
+
+## 📋 系统要求
+
+- **操作系统**：macOS 10.15+
+- **架构**：Intel (amd64) 或 Apple Silicon (arm64)
+- **依赖**：
+  - `bash` (默认已安装)
+  - `curl` (默认已安装)
+  - `git` (可选，用于克隆仓库)
+  - `gzip` (默认已安装，用于日志压缩)
 
 ---
 
