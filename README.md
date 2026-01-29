@@ -193,10 +193,11 @@ A: YYYYMMDD_HHMMSS 保证历史顺序，可追溯
 ---
 
 ## 📜 许可协议
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-本项目使用 **MIT License**  
+## 致谢
 
-允许：复制、修改、再发布、私有/商业用途  
-不负责：完整性、后果、兼容性、责任  
-
-详情见 LICENSE 文件
+特别感谢以下项目和开发者：
+- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo)
+- [vernesong/mihomo](https://github.com/vernesong/mihomo)
+- [666OS/ClashMac](https://github.com/666OS/ClashMac)
