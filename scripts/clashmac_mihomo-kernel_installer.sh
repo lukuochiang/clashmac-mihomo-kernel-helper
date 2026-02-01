@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 
 # Minimal script containing only install_core() function and its dependencies
+#
+# ClashMac Mihomo Kernel Installer
+#
+# Author: Kuochiang Lu
+# Version: 1.3.2
+# Last Updated: 2026-02-01
+#
+# 描述：
+#   ClashMac mihomo 内核安装器，专注于核心安装功能
+#   支持多个 GitHub 源，自动检测系统架构，生成备份
+#
+# 依赖：
+#   - curl (用于下载文件)
+#   - tar (解压文件)
+#   - grep, awk, sed 等基础命令行工具
+SCRIPT_NAME="ClashMac-Kernel-Installer"
+SCRIPT_VERSION="1.3.2" # 脚本版本
 
 # ========================
 # 配置路径和默认变量
@@ -20,11 +37,22 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # ========================
+# 输出空行
+# ========================
+show_empty_line() {
+    local count=${1:-1}  # 默认输出1行空行，可通过参数指定数量
+    for ((i=1; i<=count; i++)); do
+        echo
+    done
+}
+
+# ========================
 # 安装 / 更新核心
 # ========================
 install_core() {
     VERSION_BRANCH="$1"
-
+    show_empty_line 1
+    echo -e "${GREEN}========== 安装 / 更新核心开始 ==========${NC}"
     # 在脚本执行前检查核心目录
     if [ ! -d "$CLASHMAC_CORE_DIR" ]; then
         echo -e "${YELLOW}[提示] 核心目录不存在，请检查安装软件版本...${NC}"
@@ -144,16 +172,15 @@ install_core() {
     echo -e "${GREEN}[完成] 安装完成: $VERSION${NC}"
 }
 
-# ========================
+# =============================
 # 检查 ClashMac + mihomo 内核状态
-# ========================
+# =============================
 health_check_core() {
     echo -e "${GREEN}========== 健康检查开始 ==========${NC}"
     # 0. ClashMac App 检查
-    echo -e "${BLUE}========== ClashMac 安装检查 ==========${NC}"
     if [ ! -d "$CLASHMAC_DIR" ]; then
         echo -e "${RED}[错误] 未找到 ClashMac 应用目录:${NC}"
-        echo "  $CLASHMAC_DIR"
+        echo "          $CLASHMAC_DIR"
         echo -e "${YELLOW}[提示] 请先安装 ClashMac 应用后再运行此脚本${NC}"
         return 1
     fi
@@ -231,16 +258,37 @@ health_check_core() {
     echo ""
 }
 
-# ================未知命令处理===============
-handle_unknown_command() {
-    echo -e "${RED}[错误] 未知命令: $1${NC}"
-    echo "请使用 help 查看可用命令"
+# ========================
+# 显示标题信息
+# ========================
+show_title() {
+    echo -e "${BLUE}==============================================${NC}"
+    echo -e "${BLUE}      ClashMac Mihomo Kernel Installer      ${NC}"
+    echo -e "${BLUE}==============================================${NC}"
+    echo -e "${BLUE}Version: ${YELLOW}${SCRIPT_VERSION}            ${NC}"
+
+    show_empty_line 1
 }
 
-# ================健康检查===============
-health_check_core
+# ========================
+# 处理未知命令
+# ========================
+handle_unknown_command() {
+    echo -e "${RED}[错误] 未知命令: $1${NC}"
+    echo -e "${YELLOW}[提示] 你可以使用 '-i' 或 'install' 来安装/更新内核${NC}"
+}
 
-# ========== 主程序 ==========
+# ================主程序执行顺序===============
+show_title          # 显示标题信息
+health_check_core || {
+        echo -e "${RED}[错误] 健康检查失败，请确保已安装或当前脚本适用${NC}"
+        read -p "按回车键继续..."
+        exit 1
+    }
+
+# ========================
+# 主程序
+# ========================
 COMMAND="$1"
 case "$COMMAND" in
     install|-i) shift; install_core "$@" ;;
