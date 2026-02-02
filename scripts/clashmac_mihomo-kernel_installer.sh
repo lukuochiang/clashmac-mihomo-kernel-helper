@@ -5,8 +5,8 @@
 # ClashMac Mihomo Kernel Installer
 #
 # Author: Kuochiang Lu
-# Version: 1.3.2
-# Last Updated: 2026-02-01
+# Version: 1.3.3
+# Last Updated: 2026-02-02
 #
 # 描述：
 #   ClashMac mihomo 内核安装器，专注于核心安装功能
@@ -16,8 +16,8 @@
 #   - curl (用于下载文件)
 #   - tar (解压文件)
 #   - grep, awk, sed 等基础命令行工具
-SCRIPT_NAME="ClashMac-Kernel-Installer"
-SCRIPT_VERSION="1.3.2" # 脚本版本
+SCRIPT_NAME="ClashMac-Mihomo-Kernel-Installer"
+SCRIPT_VERSION="1.3.3" # 脚本版本
 
 # ========================
 # 配置路径和默认变量
@@ -53,6 +53,35 @@ install_core() {
     VERSION_BRANCH="$1"
     show_empty_line 1
     echo -e "${GREEN}========== 安装 / 更新核心开始 ==========${NC}"
+
+    # 检测当前 mihomo 安装目录
+    DETECTED_DIR=$(find $CLASHMAC_DIR -name "mihomo*" -print0 2>/dev/null | xargs -0 dirname | sort -u)
+
+    if [ -n "$DETECTED_DIR" ]; then
+        show_empty_line 1
+        echo -e "${BLUE}[信息] 检测到当前 mihomo 安装目录:${NC} $DETECTED_DIR"
+        echo -e "${BLUE}[信息] 默认安装目录:${NC} $CLASHMAC_CORE_DIR"
+
+        while true; do
+            read -p "是否安装到检测到的目录？(y/n，默认n): " INSTALL_TO_DETECTED
+            INSTALL_TO_DETECTED=${INSTALL_TO_DETECTED:-n}
+
+            if [[ "$INSTALL_TO_DETECTED" =~ ^[Yy]$ ]]; then
+                CLASHMAC_CORE_DIR="$DETECTED_DIR"
+                echo -e "${GREEN}[完成] 已选择安装目录: ${CLASHMAC_CORE_DIR}${NC}"
+                break
+            elif [[ "$INSTALL_TO_DETECTED" =~ ^[Nn]$ ]]; then
+                echo -e "${GREEN}[完成] 已选择默认安装目录: ${CLASHMAC_CORE_DIR}${NC}"
+                break
+            else
+                echo -e "${RED}[错误] 请输入 y 或 n${NC}"
+            fi
+        done
+    else
+        echo -e "${YELLOW}[提示] 未检测到当前 mihomo 安装目录${NC}"
+        echo -e "${BLUE}[信息] 将使用默认安装目录: ${CLASHMAC_CORE_DIR}${NC}"
+    fi
+
     # 在脚本执行前检查核心目录
     if [ ! -d "$CLASHMAC_CORE_DIR" ]; then
         echo -e "${YELLOW}[提示] 核心目录不存在，请检查安装软件版本...${NC}"
@@ -187,8 +216,6 @@ health_check_core() {
     echo -e "${GREEN}[成功] ClashMac 应用已安装: $CLASHMAC_DIR${NC}"
 
     # 1. Core 目录检查
-    echo -e "${BLUE}========== ClashMac 核心目录检查 ==========${NC}"
-
     if [ ! -d "$CLASHMAC_CORE_DIR" ]; then
         echo -e "${RED}[错误] 未找到 ClashMac Core 目录:${NC}"
         echo "  $CLASHMAC_CORE_DIR"
@@ -196,8 +223,6 @@ health_check_core() {
     fi
     cd "$CLASHMAC_CORE_DIR" || { echo -e "${RED}[错误] 进入核心目录失败${NC}"; return 1; }
     echo -e "${GREEN}[成功] 当前目录: $CLASHMAC_CORE_DIR${NC}"
-
-    echo -e "${BLUE}========== ClashMac 内核健康检查 ==========${NC}"
 
     # 2. 核心文件是否存在
     if [ ! -f "$ACTIVE_CORE" ]; then
