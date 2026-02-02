@@ -1,26 +1,54 @@
 #!/usr/bin/env bash
 
+###############################################################################
+# ClashMac Mihomo Kernel Manager
 #
-# Mihomo Kernel Manager for ClashMac 一个用于管理 ClashMac 中 Mihomo 内核的脚本工具
+# 项目概述：
+#   一个功能全面的 ClashMac mihomo 内核交互式管理工具
+#   提供直观的菜单界面，简化内核的安装、更新、切换和维护操作
+#   与 ClashMac GUI 完全分离，专注于内核管理职责
 #
-# Author: Kuochiang Lu
-# Version: v1.2.0
-# Last Updated: 2026-02-02
+# 作者信息：
+#   Author: Kuochiang Lu
+#   Version: v1.2.0
+#   Last Updated: 2026-02-02
 #
-# 描述：
-#   ClashMac mihomo 内核交互式管理工具，提供直观的菜单界面
-#   整合核心下载、管理、切换功能，与 GUI 完全分离职责
+# 核心功能：
+#   ✅ 内核安装与更新：支持从多个 GitHub 源（如 MetaCubeX、vernesong）下载安装
+#   ✅ 内核版本切换：在已备份的多个内核版本之间无缝切换
+#   ✅ 备份管理：列出所有已备份的内核版本，便于查看和选择
+#   ✅ 状态监控：显示当前使用的内核版本及系统运行状态
+#   ✅ 健康检查：验证内核完整性和运行状况
+#   ✅ 进程管理：提供杀掉 mihomo 内核进程的功能
+#   ✅ 应用控制：支持重启 ClashMac 应用以应用更改
+#   ✅ 交互界面：提供直观易用的菜单式交互界面
 #
-# 功能：
-#   - 安装/更新 mihomo 核心（支持多个 GitHub 源）
-#   - 在备份之间切换
-#   - 列出所有备份核心
-#   - 显示当前核心及系统状态
-#   - 健康检查功能
-#   - 杀掉 Mihomo 内核进程
-#   - 重启 ClashMac 应用
-#   - 直观的交互式菜单界面
+# 系统依赖：
+#   - bash 4.0+      # 脚本运行环境
+#   - curl           # 用于从 GitHub 下载内核文件
+#   - tar            # 用于解压内核包
+#   - grep/awk/sed   # 用于文本处理
+#   - ps/kill        # 用于进程管理
+#   - uname          # 用于系统信息检测
 #
+# 使用方式：
+#   1. 赋予脚本执行权限：chmod +x clashmac_mihomo-kernel_manager.sh
+#   2. 直接运行脚本：./clashmac_mihomo-kernel_manager.sh
+#   3. 在交互菜单中选择所需功能（输入对应数字并按回车）
+#
+# 设计特点：
+#   - 模块化设计，便于维护和扩展
+#   - 完善的错误处理机制
+#   - 清晰的用户反馈信息
+#   - 与 ClashMac 应用完美集成
+#   - 支持多种系统架构（arm64/amd64）
+#
+# 注意事项：
+#   - 首次使用前请确保 ClashMac 应用已正确安装
+#   - 部分操作可能需要管理员权限
+#   - 切换内核版本后建议重启 ClashMac 应用
+#   - 定期运行健康检查以确保内核正常工作
+###############################################################################
 
 # 脚本名称
 SCRIPT_NAME="ClashMac Mihomo Kernel Manager"
@@ -361,6 +389,34 @@ install_core() {
     VERSION_BRANCH="$1"
 
     cd "$CLASHMAC_CORE_DIR" || { echo_error "进入核心目录失败"; return 1; }
+
+    # 检测当前 mihomo 安装目录
+    DETECTED_DIR=$(find $CLASHMAC_DIR -name "mihomo*" -print0 2>/dev/null | xargs -0 dirname | sort -u)
+
+    if [ -n "$DETECTED_DIR" ]; then
+        show_empty_line 1
+        echo -e "${BLUE}[信息] 检测到当前 mihomo 安装目录:${NC} $DETECTED_DIR"
+        echo -e "${BLUE}[信息] 默认安装目录:${NC} $CLASHMAC_CORE_DIR"
+
+        while true; do
+            read -p "是否安装到检测到的目录？(y/n，默认n): " INSTALL_TO_DETECTED
+            INSTALL_TO_DETECTED=${INSTALL_TO_DETECTED:-n}
+
+            if [[ "$INSTALL_TO_DETECTED" =~ ^[Yy]$ ]]; then
+                CLASHMAC_CORE_DIR="$DETECTED_DIR"
+                echo -e "${GREEN}[完成] 已选择安装目录: ${CLASHMAC_CORE_DIR}${NC}"
+                break
+            elif [[ "$INSTALL_TO_DETECTED" =~ ^[Nn]$ ]]; then
+                echo -e "${GREEN}[完成] 已选择默认安装目录: ${CLASHMAC_CORE_DIR}${NC}"
+                break
+            else
+                echo -e "${RED}[错误] 请输入 y 或 n${NC}"
+            fi
+        done
+    else
+        echo -e "${YELLOW}[提示] 未检测到当前 mihomo 安装目录${NC}"
+        echo -e "${BLUE}[信息] 将使用默认安装目录: ${CLASHMAC_CORE_DIR}${NC}"
+    fi
 
     # ---------- 1. 选择 GitHub 用户 ----------
     if [ -n "$VERSION_BRANCH" ]; then
