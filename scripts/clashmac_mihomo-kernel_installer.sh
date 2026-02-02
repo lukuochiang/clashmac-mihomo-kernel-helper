@@ -302,8 +302,6 @@ health_check_core() {
     echo -e "${GREEN}[✓] core 目录写权限正常${NC}"
 
     echo -e "${GREEN}========== 健康检查通过 ==========${NC}"
-
-    echo ""
 }
 
 # ========================
@@ -326,19 +324,69 @@ handle_unknown_command() {
     echo -e "${YELLOW}[提示] 你可以使用 '-i' 或 'install' 来安装/更新内核${NC}"
 }
 
-# ================主程序执行顺序===============
-show_title          # 显示标题信息
-health_check_core || {
-        echo -e "${RED}[错误] 健康检查失败，请确保已安装或当前脚本适用${NC}"
-        read -p "按回车键继续..."
-        exit 1
-    }
+# ========================
+# 显示使用帮助
+# ========================
+show_usage() {
+    show_empty_line 1
+    echo -e "${BLUE}用法:${NC} $0 [命令] [参数]"
+    show_empty_line 1
+    echo -e "${BLUE}可用命令:${NC}"
+    echo -e "  ${GREEN}install${NC}, ${GREEN}-i${NC}    安装/更新 mihomo 内核"
+    echo -e "  ${GREEN}check${NC}, ${GREEN}-c${NC}     运行健康检查"
+    echo -e "  ${GREEN}help${NC}, ${GREEN}-h${NC}      显示帮助信息"
+    show_empty_line 1
+    echo -e "${BLUE}示例:${NC}"
+    echo -e "  安装最新内核:"
+    echo -e "    $0 install"
+    echo -e "  运行健康检查:"
+    echo -e "    $0 check"
+    show_empty_line 1
+}
 
 # ========================
-# 主程序
+# 主程序函数
 # ========================
-COMMAND="$1"
-case "$COMMAND" in
-    install|-i) shift; install_core "$@" ;;
-    *) handle_unknown_command "$COMMAND" ;;
-esac
+main() {
+    show_title
+
+    # 检查是否有命令行参数
+    if [ $# -eq 0 ]; then
+        # 无参数时执行默认操作：先运行健康检查，然后提示用户
+        health_check_core
+        HEALTH_STATUS=$?
+
+        show_empty_line 1
+        echo -e "${YELLOW}[提示] 未指定命令，默认执行健康检查${NC}"
+        show_usage
+        return $HEALTH_STATUS
+    fi
+
+    # 解析命令行参数
+    local COMMAND="$1"
+    shift
+
+    # 处理命令
+    case "$COMMAND" in
+        install|-i)
+            install_core "$@"
+            ;;
+        check|-c)
+            health_check_core
+            ;;
+        help|-h|--help)
+            show_usage
+            ;;
+        *)
+            handle_unknown_command "$COMMAND"
+            ;;
+    esac
+}
+
+# ========================
+# 脚本入口点
+# ========================
+# 如果脚本直接执行，则调用 main 函数
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
