@@ -201,3 +201,7 @@ A: YYYYMMDD_HHMMSS 保证历史顺序，可追溯
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo)
 - [vernesong/mihomo](https://github.com/vernesong/mihomo)
 - [666OS/ClashMac](https://github.com/666OS/ClashMac)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=lukuochiang/clashmac-mihomo-kernel-helper&type=date&legend=top-left)](https://www.star-history.com/#lukuochiang/clashmac-mihomo-kernel-helper&type=date&legend=top-left)
